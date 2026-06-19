@@ -1,4 +1,3 @@
-# sensor-image
 <p align="center">
 <img width="616" height="510" alt="5 LOGO_NUEVO carta _AAC sin tecto inferior_g" src="https://github.com/user-attachments/assets/d659fac6-6f4f-47f9-a216-d6a7a17e4c07" />
 </p>
