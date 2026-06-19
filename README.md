@@ -49,7 +49,7 @@ sensor-image/
 └── README.md
 ```
 
-#Contenidos por carpeta
+## Contenidos por carpeta
 
 ```text
 -app/
@@ -69,7 +69,7 @@ Scripts auxiliares.
 
 ```
 
-#Organización de datos
+## Organización de datos
 
 
 ```text
@@ -84,7 +84,7 @@ Scripts auxiliares.
 
 ```
 
-#install.sh
+## install.sh
 
 ```text
 Archivo que se ejecuta una única vez al desplegar un nuevo sensor fisicamente. Crea /opt/noiseport , /root/data, copia la última versión del código y los servicios, crea el entorno virtual, los links simbólicos, instala librerías y wheels en caso de faltar en la imágen.
@@ -98,7 +98,7 @@ Se ejecuta manualmente cuando hay una nueva versión en el repositorio. Hace un 
 
 ```
 
-#CHANGELOG
+## CHANGELOG
 
 ```
 0.1.0
