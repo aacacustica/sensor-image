@@ -1,0 +1,14 @@
+[Unit]
+Description=Tailscale node agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/sbin/tailscaled --state=/data/tailscale/tailscaled.state --socket=/run/tailscale/tailscaled.sock --tun=userspace-networking --outbound-http-proxy-listen=127.0.0.1:1055
+Restart=on-failure
+RestartSec=5
+RuntimeDirectory=tailscale
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=multi-user.target

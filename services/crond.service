@@ -1,0 +1,13 @@
+[Unit]
+Description=BusyBox Cron Daemon
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/crond -L /root/logs/crond_debug.log -c /var/spool/cron/crontabs
+ExecStop=/bin/killall crond
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

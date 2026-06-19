@@ -1,0 +1,528 @@
+import os
+import sys
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
+DEPS_DIR = os.path.join(BASE_DIR,'deps')
+sys.path.insert(0,DEPS_DIR)
+
+import argparse
+import numpy as np
+import datetime
+import time
+import csv
+import soxr
+import soundfile as sf
+import tflite_runtime.interpreter as tflite
+
+import warnings
+
+from utils import load_config_inference, class_names_csv
+from inference_utils import *
+from logging_config import setup_logging
+from pathlib import Path
+
+#removing 
+warnings.filterwarnings("ignore", 
+                        message="FNV hashing is not implemented in Numba",
+                        category=UserWarning
+                        )
+
+
+
+
+def inference(path,id_micro,file_list, model_path, sample_rate,window_size, threshold, logging, output_wav_folder, output_predict_lt_folder, cwd, yamnet_class_map_csv , num_threads,debug):
+    
+    """Perform inference on one or more audio files.
+
+    Args:
+        file_list (list[str]): List of file paths to process.
+        window_size (float, optional): Window size in seconds. If None, process the entire file at once.
+        threshold (float, optional): Threshold for classification.
+    """
+    
+    logging.info("")
+    logging.info("Making inference")
+
+    # ---------------------------
+    # INIZIALATIN PROCESSING FILE
+    # ---------------------------
+    t0_list_processed = time.perf_counter()
+
+    processed_files_txt = os.path.join(path, "processed_predictions.txt")
+    processed_files_txt = processed_files_txt.replace("wav_files", "predictions_litle")
+    logging.info(f"Saving the processed file txt here --> {processed_files_txt}")
+    
+    processed_files = load_processed_files(processed_files_txt)
+
+    t1_list_processed = time.perf_counter()
+    
+    # --------------------------------------------------------
+    # 1) create the TFLite interpreter
+    # --------------------------------------------------------
+    logging.info("Setting the TF Model and loading the classes")
+    
+    t0_load_model = time.perf_counter()
+    if model_path is not None:
+
+        interpreter = tflite.Interpreter(
+                                        model_path     =       model_path,
+                                        num_threads    =       num_threads
+                                        )
+        logging.info(f"Model path --> {model_path}")
+    else:
+        raise Exception('Model Path doesnt exist.')
+    
+    yamnet_classes_csv = os.path.join(cwd, yamnet_class_map_csv)
+    yamnet_classes = class_names_csv(yamnet_classes_csv)
+
+    t1_load_model = time.perf_counter()
+    logging.info("Classes map loaded")
+
+
+    # --------------------
+    # Processing audio files
+    # --------------------
+    t0_input_details = time.perf_counter()
+    logging.info("INTERPRETER --> Get input/output details")
+    input_details = interpreter.get_input_details()
+    logging.info(f"Input details --> {input_details}")
+    output_details = interpreter.get_output_details()
+    waveform_input_index = input_details[0]['index']
+    scores_output_index = output_details[0]['index']
+    t1_input_details = time.perf_counter()
+
+    t0_allocate = time.perf_counter()
+    # El modelo ya viene con shape fijo [15600], así que reservamos una vez
+    interpreter.allocate_tensors()
+    t1_allocate = time.perf_counter()
+
+
+    for audio_file in file_list:
+        t0_start_audio = time.perf_counter()
+        try:
+            logging.info("")
+            logging.info(f"Processing --> {audio_file}")
+
+            if audio_file in processed_files:
+                logging.info(f"Skipping {audio_file}, already processed.")
+                continue
+            
+            file_start_time = time.time()
+
+            # -----------------------------------------------------------
+            # csv file name and folder
+            # -----------------------------------------------------------
+
+            t0_filenames = time.perf_counter()
+
+            wav_filename = os.path.basename(audio_file)  # e.g. 20250108_142606.wav
+            # name wave file
+            wav_file_raw = os.path.splitext(wav_filename)[0]
+            # setting time
+            local_tz = datetime.datetime.now().astimezone().tzinfo
+            start_timestamp = datetime.datetime.strptime(wav_file_raw, '%Y%m%d_%H%M%S')
+            start_timestamp = start_timestamp.replace(tzinfo=local_tz)
+            
+            t1_filenamoes = time.perf_counter()
+
+            if window_size is None:
+                csv_filename = wav_filename.replace(".wav", "_tflt.csv")  # e.g. 20250108_142606.csv
+            else:
+                csv_filename = wav_filename.replace(".wav", f"_tflt_w_{window_size}.csv")  # e.g. 20250108_142606.csv
+
+
+
+            prediction_folder = os.path.dirname(audio_file).replace(output_wav_folder, output_predict_lt_folder)
+            os.makedirs(prediction_folder, exist_ok=True)
+
+            csv_full_path = os.path.join(prediction_folder, csv_filename)
+
+
+            # --------------------------------------------------------
+            # 2 get input/output details --> Removed for optimization reasons
+            # --------------------------------------------------------
+            logging.info("")
+
+            # --------------------------------------------------------
+            # 3 prepare waveform input (0.975s @ 16kHz => 15600 samples)
+            # Decode the WAV file
+            # -----------------------------------------------------------
+            t0_read_audio = time.perf_counter()
+            wav_data, sr = sf.read(audio_file, dtype=np.int16)
+            t1_read_audio = time.perf_counter()
+            assert wav_data.dtype == np.int16, f'Bad sample type: {wav_data.dtype}'
+
+
+            waveform = wav_data.astype(np.float32) / 32768.0 # Convert to [-1.0, +1.0]
+
+            # convert to mono and the sample rate expected by YAMNet
+            if len(waveform.shape) > 1:
+                waveform = np.mean(waveform, axis=1)
+                logging.info("Audio file converted to mono")
+            if sr != sample_rate:
+                #waveform = resampy.resample(waveform, sr, sample_rate)
+                waveform = soxr.resample(waveform, sr, sample_rate)
+                logging.info("Audio file resampled to 16KHz")
+            t2 = time.perf_counter()
+
+            # -----------------------------------------------------------
+            # create a fresh CSV data list for this file
+            # -----------------------------------------------------------
+            with open(csv_full_path, mode="w", newline="") as final_csv:
+                writer = csv.writer(final_csv)
+                writer.writerow(["id_micro", "Filename", "Timestamp", "Unixtimestamp", "class", "probability"])
+
+
+                if window_size is None:
+                    logging.info("")
+                    logging.info(f"Processing the whole audio file: {audio_file}")
+                    # --------------------------------------------------------
+                    # 4 resize input tensor and allocate
+                    # --------------------------------------------------------
+                    t_inf_start = time.perf_counter()
+                    input_len = int(waveform.shape[0])
+                    interpreter.resize_tensor_input(waveform_input_index, [input_len], strict=False)
+                    interpreter.allocate_tensors()
+
+
+                    # --------------------------------------------------------
+                    # 5set input tensor and run inference
+                    # --------------------------------------------------------
+                    interpreter.set_tensor(waveform_input_index, waveform)
+                    interpreter.invoke()
+                    scores = interpreter.get_tensor(scores_output_index)  
+                    t_inf_end = time.perf_counter()
+        
+                    # ---------------------------------------------------------
+                    # predcition
+                    # ---------------------------------------------------------
+                    prediction = np.mean(scores, axis=0)
+
+                    top_i,top_prediction = filter_predictions(prediction,threshold)
+                    
+                    if top_i is not None:
+                        top_class = yamnet_classes[top_i]
+                        top_prediction = f"{top_prediction:.4f}"
+                    else:
+                        top_class = []
+                        top_prediction = []
+                    
+
+                    #unixtimestamp
+                    unix_ts = int(start_timestamp.timestamp())
+
+                    """
+                    csv_data.append([
+                        id_micro,
+                        audio_file,
+                        str(start_timestamp),
+                        unix_ts,
+                        str(top_class),
+                        str(top_prediction)
+                    ])
+                    """
+                    writer.writerow([
+                        id_micro,
+                        audio_file,
+                        str(start_timestamp),
+                        unix_ts,
+                        str(top_class),
+                        str(top_prediction)
+                    ])
+                    
+
+                # -------------------------------
+                # WINDOWED
+                # -------------------------------
+                else:
+                    logging.info(f"Processing windowed audio file: {audio_file}")
+
+                    target_len = 15600
+                    input_buffer = np.zeros((target_len,), dtype=np.float32)
+
+                    t_inf_start = time.perf_counter()
+
+                    for start_idx in range(0, len(waveform), target_len):
+
+                        end_idx = min(start_idx + target_len, len(waveform))
+                        valid_len = end_idx - start_idx
+
+                        input_buffer.fill(0.0)
+                        input_buffer.fill(0.0)
+
+                        t0_set_tensor = time.perf_counter()
+                        interpreter.set_tensor(waveform_input_index, input_buffer)
+                        t1_set_tensor = time.perf_counter()
+
+                        t0_invoke_tensor = time.perf_counter()
+                        interpreter.invoke()
+                        t1_invoke_tensor = time.perf_counter()
+
+                        t0_get_scores = time.perf_counter()
+                        scores = interpreter.get_tensor(scores_output_index)
+                        t1_get_scores = time.perf_counter()
+
+                        prediction = np.mean(scores, axis=0)
+
+                        t0_filter_preds = time.perf_counter()
+                        top_i, top_prediction = filter_predictions(prediction, threshold)
+                        t1_filter_preds = time.perf_counter()
+
+                        if top_i is not None:
+                            top_class = yamnet_classes[top_i]
+                            top_prediction = f"{top_prediction:.4f}"
+                        else:
+                            top_class = []
+                            top_prediction = []
+
+                        start_time_s = start_idx / sample_rate
+                        window_timestamp_actual = start_timestamp + datetime.timedelta(seconds=int(start_time_s))
+                        unix_ts = int(window_timestamp_actual.timestamp())
+
+                        t0_write_row = time.perf_counter()
+                        writer.writerow([
+                            id_micro,
+                            audio_file,
+                            window_timestamp_actual,
+                            unix_ts,
+                            str(top_class),
+                            str(top_prediction)
+                        ])
+                        t1_write_row = time.perf_counter()
+
+                    t_inf_end = time.perf_counter()
+
+
+            # -----------------------------------------------------------
+            # save csv
+            # -----------------------------------------------------------
+
+            logging.info(f"Final CSV file saved at {csv_full_path}")
+
+            
+            # ----------------------------
+            # MARKING FILE AS PROICESSED
+            # ----------------------------
+            t0_update_processed = time.perf_counter()
+            update_processed_files(processed_files_txt, audio_file)
+            t1_update_processed = time.perf_counter()
+            processed_files.add(audio_file)
+            
+            file_end_time = time.time()
+            elapsed_time = file_end_time - file_start_time
+            logging.info(f"Processing of {audio_file} took {elapsed_time:.2f} seconds")
+
+            if debug:
+                logging.info(f"TIMING allocate = {t1_allocate - t0_allocate}")
+                logging.info(f"TIMING filenames = {t1_filenamoes - t0_filenames}")
+                logging.info(f"TIMING filter preds= {t1_filter_preds - t0_filter_preds}")
+                logging.info(f"TIMING get scores= {t1_get_scores - t0_get_scores}")
+                logging.info(f"TIMING input details = {t1_input_details - t0_input_details}")
+                logging.info(f"TIMING invoke tensor = {t1_invoke_tensor - t0_invoke_tensor}")
+                logging.info(f"TIMING write row = {t1_write_row - t0_write_row}")
+                logging.info(f"TIMING listing processed = {t1_list_processed - t0_list_processed}")
+                logging.info(f"TIMING loading model = {t1_load_model - t0_load_model}")
+                logging.info(f"TIMING read audio = {t1_read_audio - t0_read_audio}")
+                logging.info(f"TIMING setting tensor = {t1_set_tensor - t0_set_tensor}")
+                logging.info(f"TIMING updating processed = {t1_update_processed - t0_update_processed}")
+                logging.info(f"TIMING total file processing = {file_end_time - file_start_time}")
+
+        # -------------
+        # END
+        # ---------------
+        except Exception as e:
+                logging.error(f"Error processing file {audio_file}: {e}")
+                continue
+
+
+
+
+
+
+
+
+
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Make prediction with YAMNet model for audio files')
+    parser.add_argument('-p', '--path', type=str, required=False,help='Folder containing WAV files to process')
+    
+    parser.add_argument('-w', '--window-size', type=float, default=None,
+                        help='Window size in seconds for processing audio files. '
+                             'Default is None for processing the entire audio.')
+
+    parser.add_argument('-t', '--threshold', type=float, default=None, help='Classification threshold for predictions.')
+    parser.add_argument('-m', '--model-path', type=str, default=None, help='Insert the model path to make predictions.')
+    parser.add_argument('--num-threads', type=int, default=2,
+                    help='Number of TFLite threads')
+    parser.add_argument('-s','--step', type=int, default=5 , help='Step of files to process, default is 5 (process every 5 files)')
+    parser.add_argument(
+    "-d","--debug",
+    action="store_true",
+    help="Activa el modo debug"
+    )
+    return parser.parse_args()
+
+
+
+
+def main():
+    try:
+        logging = setup_logging(script_name="inference_tflite")
+        args = parse_arguments()
+        
+        logging.info("Staarting process!!")
+        logging.info("")
+        
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        home_dir = os.getenv("HOME")
+        logging.info(f"Current working dir --> {cwd}")
+        logging.info(f"Home dir --> {home_dir}")
+        
+        
+        logging.info("Getting the element form the yamnl file")
+        
+        try: 
+
+            name_device,id_micro, location_record, location_place, location_point, storage_s3_bucket_name, \
+            storage_output_wav_folder, storage_output_acoust_folder, storage_output_predict_folder, \
+            storage_output_predict_lt_folder, prediction_yamnet_class_map_csv, prediction_sample_rate, \
+            prediction_chunk_size, _, prediction_model_tflt= load_config_inference('config.yaml',cwd)
+
+            logging.info("Config loaded successfully")
+        except Exception as e:
+            logging.error(f"Error loading config: {e}")
+            return
+
+
+        # ----------------------------
+        # PARSE ARGUMENTS & CONFIG
+        # ----------------------------
+        #WAV PÀTH
+
+        if args.num_threads:
+            num_threads = args.num_threads
+
+        if args.path:
+            path = args.path
+        else:
+            path = os.path.join(
+            home_dir,
+            location_record,
+            location_place,
+            location_point,
+            "AUDIOMOTH",
+            storage_output_wav_folder
+            )
+            if os.path.exists(path):
+                logging.info(f"Path exists --> {path}")
+            else:
+                raise Exception('Path doesnt exist.')
+        
+        # DEEP LEARNING MODEL PATH
+        if args.model_path:
+            model_path = args.model_path
+        else:
+            if name_device == "sensor": model_path = "/root/IoT_microphone_scripts-main/03_inference/yamnet.tflite"
+            elif name_device == "RB" : model_path = "/home/pi/IoT_microphone_scripts-main/03_inference/yamnet.tflite"
+            
+        
+        # WINDOW
+        if args.window_size:
+            window_size = args.window_size
+        else:
+            window_size = None
+
+        # THRESHOLD
+        if args.threshold:
+            threshold = args.threshold
+        else:
+            threshold = None
+        
+        if args.step:
+            step = args.step
+        else:
+            step = 5
+
+        if args.debug:
+            debug = True
+        else:
+            debug = False
+
+    except Exception as e:
+        logging.error(f"Error getting the config info: {e}")
+
+    if not path :
+        if name_device == "sensor": path = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/wav_files"
+        elif name_device =="RB" : path = "/home/pi/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/wav_files"
+    if not id_micro : id_micro = ""
+    if not model_path :
+        if name_device == "sensor": model_path = "/root/IoT_microphone_scripts-main/03_inference/yamnet.tflite"
+        elif name_device == "RB" : model_path = "/home/pi/IoT_microphone_scripts-main/03_inference/yamnet.tflite"
+    if not window_size : window_size = 1
+    if not threshold : threshold = 0.3
+    if not step : step = 5
+
+    if debug : logging.info(f"Path: {path}")
+    if debug : logging.info(f"ID Micro: {id_micro}")
+    if debug : logging.info(f"Model path: {model_path}")
+    if debug : logging.info(f"Window size: {window_size}")
+    if debug : logging.info(f"Probability treshold: {threshold}")
+    if debug : logging.info(f"Step between samples : {step}")
+    if debug : logging.info(f"Debugging : {debug}")
+
+
+    try:
+        
+        audio_files = sorted([
+            f for f in os.listdir(path)
+            if f.lower().endswith(".wav")
+        ])
+
+        hour_to_process_list_path = os.path.join(path, "processing_files.txt")
+
+        with open(hour_to_process_list_path, "r") as f:
+            files_to_process_list = [
+                os.path.join(path, line.strip())
+                for line in f
+                if line.strip()
+            ]
+            
+        files_to_process_list_step = files_to_process_list[:step]
+
+    except Exception as e:
+        logging.error(f"Error getting the audio files: {e}")
+        return
+
+    logging.info(
+    f"Found {len(files_to_process_list_step)} audio files to process: {files_to_process_list_step}"
+    )
+
+
+    try:
+        inference(
+            path=path,
+            file_list=files_to_process_list_step,
+            id_micro=id_micro,
+            model_path=model_path,
+            yamnet_class_map_csv=prediction_yamnet_class_map_csv,
+            sample_rate=prediction_sample_rate,
+            window_size=window_size,
+            threshold=threshold,
+            output_wav_folder=storage_output_wav_folder,
+            output_predict_lt_folder=storage_output_predict_lt_folder,
+            cwd=cwd,
+            num_threads = num_threads,    
+            logging=logging,
+            debug=debug
+        )
+
+    
+    except Exception as e:
+        logging.error(f"Error making inference: {e}")
+
+
+
+if __name__ == '__main__':
+    main()

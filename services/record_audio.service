@@ -1,0 +1,17 @@
+[Unit]
+Description=Continuous audio recording service
+After=network.target sound.target
+Wants=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/IoT_microphone_scripts-main
+Environment="PYTHONPATH=/root/IoT_microphone_scripts-main"
+ExecStart=/bin/bash /root/IoT_microphone_scripts-main/Automatize/01_recording.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
