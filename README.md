@@ -17,4 +17,6 @@ Imagen, configuración y scripts de despliegue para el sensor acústico basado e
 └── prediction_files -> /root/data/prediction_files
 
 ```
+<p align="center">
 <img width="311" height="971" alt="Diagrama estructura sensor drawio" src="https://github.com/user-attachments/assets/710764d0-8b18-47e8-a6af-266ab1b50937" />
+<\p>
