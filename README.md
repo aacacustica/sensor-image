@@ -1,6 +1,19 @@
 # sensor-image
+<p align="center">
+<img width="616" height="510" alt="5 LOGO_NUEVO carta _AAC sin tecto inferior_g" src="https://github.com/user-attachments/assets/d659fac6-6f4f-47f9-a216-d6a7a17e4c07" />
+</p>
 
-Imagen, configuración y scripts de despliegue para el sensor acústico basado en CCMP13-DVK de Digi.
+Imagen, configuración y scripts de despliegue para el sensor acústico de AAC Acústica basado en CCMP13-DVK de Digi. Se trata de un dispositivo de desarrollo propio con ayuda externa de [Eversmart]([URL](https://eversmart.io/es/)) para el desarrollo de la placa y la elección de componentes. El dispositivo hace recolección de datos acústicos de nivel continuo equivalente, ponderación C y Z, nivel máximo y mínimo, tercios de octavas e inferencia de clases acústicas.
+
+<p align="center">
+<img width="2048" height="1536" alt="WhatsApp Image 2026-06-19 at 13 27 42" src="https://github.com/user-attachments/assets/2496325c-6c9c-4ecf-b1ab-786ce0989af0" />
+</p>
+
+<p align="center">
+<img width="2048" height="1536" alt="WhatsApp Image 2026-06-19 at 13 27 42 (1)" src="https://github.com/user-attachments/assets/45c5f6fc-68f6-47df-91cd-cf719d49bc90" />
+</p>
+
+
 
 ## Estructura
 
