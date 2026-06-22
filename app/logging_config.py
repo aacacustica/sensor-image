@@ -5,9 +5,9 @@ from pathlib import Path
 
 def setup_logging(script_name, level=logging.INFO):
 
-    home_dir = str(Path.home())
-    log_dir = "log"
-    full_path_log_dir = os.path.join(home_dir, log_dir)
+    #home_dir = str(Path.home())
+    #log_dir = "log"
+    full_path_log_dir = os.getenv("LOG_DIR", "/root/data/logs")
     os.makedirs(full_path_log_dir, exist_ok=True)
 
     #log file 

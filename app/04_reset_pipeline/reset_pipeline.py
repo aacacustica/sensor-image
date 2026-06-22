@@ -7,7 +7,7 @@ PROCESSED_WAVS_TXT = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AU
 
 
 
-INFERENCES_PROCESSED_PATH = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/predictions_litle/processed_predictions.txt"
+INFERENCES_PROCESSED_PATH = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/prediction_files/processed_predictions.txt"
 ACOUSTICS_PROCESSED_PATH = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/acoustic_params/processed_acoustic.txt"
 
 

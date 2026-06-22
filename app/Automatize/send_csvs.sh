@@ -3,6 +3,7 @@
 SENSOR_NAME=$(hostname)
 SERVER_BASE="http://100.120.228.23:8080/upload"
 PROXY="http://127.0.0.1:1055"
+DATA_DIR="/root/data"
 
 send_file() {
     f="$1"
@@ -68,8 +69,8 @@ send_dir() {
     done
 }
 
-send_dir "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/acoustic_params" "acoustics"
-send_dir "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/predictions_litle" "predictions"
+send_dir "$DATA_DIR/acoustic_params" "acoustics"
+send_dir "$DATA_DIR/prediction_files" "predictions"
 
 # Opcional: envío de un wav aleatorio
 #wav_random=$(find /root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/wav_files -type f -name '*.wav' | shuf -n 1)

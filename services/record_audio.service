@@ -5,9 +5,10 @@ Wants=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/root/IoT_microphone_scripts-main
-Environment="PYTHONPATH=/root/IoT_microphone_scripts-main"
-ExecStart=/bin/bash /root/IoT_microphone_scripts-main/Automatize/01_recording.sh
+WorkingDirectory=/opt/noiseport/app
+EnvironmentFile=/opt/noiseport/config/sensor.env
+Environment="PYTHONPATH=/opt/noiseport/app"
+ExecStart=/bin/bash /opt/noiseport/app/Automatize/01_recording.sh
 Restart=always
 RestartSec=10
 StandardOutput=journal

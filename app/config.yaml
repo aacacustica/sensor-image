@@ -29,7 +29,7 @@ storage:
   output_wav_folder: "wav_files"
   output_acoust_folder: "acoustic_params"
   output_predict_folder: "predict"
-  output_predict_lt_folder: "predictions_litle"
+  output_predict_lt_folder: "prediction_files"
   file_part_size: 1048576                                 # = 1024 * 1024 = 1MB
   #file_part_size: 131072                                   #128KB , intento 1 de reducir el tiempo de subida
 

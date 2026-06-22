@@ -8,6 +8,9 @@ DATA_DIR="/root/data"
 VENV_DIR="$INSTALL_DIR"/.venv"
 PYTHON_BIN="python3"
 
+
+[ -x scripts/prepare_data_partition.sh ] && sh scripts/prepare_data_partition.sh
+
 echo "=== [1/8] Creando directorios ==="
 mkdir -p "$INSTALL_DIR"
 mkdir -p "$DATA_DIR/logs"

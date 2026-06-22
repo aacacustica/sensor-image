@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-VENV_PATH="/root/venvs/tflite/bin/activate"
-PROJECT_ROOT="/root/IoT_microphone_scripts-main"
-SCRIPT_PATH="$PROJECT_ROOT/03_inference/inference_tflite.py"
+VENV_PATH="/opt/noiseport/.venv/bin/activate"
+PROJECT_ROOT="/opt/noiseport/app"
+SCRIPT_PATH="$PROJECT_ROOT/03_inference/inference_tflite_optimized.py"
 
 ARGS=(-w 1 -p "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/wav_files" -s 5 -t 0.3)
 

@@ -52,7 +52,7 @@ def inference(path,id_micro,file_list, model_path, sample_rate,window_size, thre
     # ---------------------------
     
     processed_files_txt = os.path.join(path, "processed_predictions.txt")
-    processed_files_txt = processed_files_txt.replace("wav_files", "predictions_litle")
+    processed_files_txt = os.path.join("/root/data/prediction_files", "processed_predictions.txt")
     logging.info(f"Saving the processed file txt here --> {processed_files_txt}")
     processed_files = load_processed_files(processed_files_txt)
     
@@ -394,7 +394,7 @@ def main():
         if args.model_path:
             model_path = args.model_path
         else:
-            model_path = "/root/IoT_microphone_scripts-main/03_inference/yamnet.tflite"
+            model_path = "/root/data/models/yamnet.tflite"
         
         # WINDOW
         if args.window_size:
