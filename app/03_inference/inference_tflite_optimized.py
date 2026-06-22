@@ -16,10 +16,10 @@ import tflite_runtime.interpreter as tflite
 
 import warnings
 
-from utils import load_config_inference, class_names_csv, load_config
+from utils import class_names_csv, load_config
 from logging_config import setup_logging
 
-config = load_config("/root/app/config.yaml")
+config = load_config("/opt/noiseport/app/config.yaml")
 logging = setup_logging(script_name="inference_tflite")
 
 def filter_predictions(predictions,threshold):

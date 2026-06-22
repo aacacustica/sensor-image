@@ -16,7 +16,7 @@ import numpy as np
 from utils import load_config,load_yaml,read_calibration_constants,get_valid_audio_files,read_audio,resample_audio,update_processed_files
 from logging_config import setup_logging
 
-config = load_config("/root/app/config.yaml")
+config = load_config("/opt/noiseport/app/config.yaml")
 logging = setup_logging(script_name="acoustic_params")
 
 def get_start_timestamp(audio_file):
@@ -133,7 +133,7 @@ class LeqLevelOct:
         return [rows], col_names
 
 def main():
-    
+
     try:
 
         
@@ -257,7 +257,7 @@ def main():
                     file_data, col_names = calculator.process_audio_files(
                         x               = x,
                         audio_file      = audio_file,
-                        mode            = mode,
+                        bands           = mode,
                     )
 
                     #---------------------------

@@ -3,11 +3,15 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+from utils import load_config
+config = load_config("/opt/noiseport/app/config.yaml")
+
+LOG_DIR = config['logging']['directory']
+
 def setup_logging(script_name, level=logging.INFO):
 
-    #home_dir = str(Path.home())
-    #log_dir = "log"
-    full_path_log_dir = os.getenv("LOG_DIR", "/root/data/logs")
+
+    full_path_log_dir = os.getenv(LOG_DIR, "/root/data/logs")
     os.makedirs(full_path_log_dir, exist_ok=True)
 
     #log file 
