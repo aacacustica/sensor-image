@@ -1,12 +1,11 @@
 import os
 import sys
-PROJECT_ROOT = "/root/IoT_microphone_scripts-main"
-sys.path.insert(0, PROJECT_ROOT)
 
 from pathlib import Path
 from logging_config import setup_logging
-from config import config
+from utils import load_config
 
+config = load_config("/root/app/config.yaml")
 PROJECT_ROOT = "/opt/noiseport/app"
 WAV_FILES_FOLDER = config["paths"]["audio"]
 

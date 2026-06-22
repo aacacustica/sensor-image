@@ -5,7 +5,7 @@ VENV_PATH="/opt/noiseport/.venv/bin/activate"
 PROJECT_ROOT="/opt/noiseport/app"
 SCRIPT_PATH="$PROJECT_ROOT/03_inference/inference_tflite_optimized.py"
 
-ARGS=(-w 1 -p "/root/data/audio" -s 5 -t 0.3)
+ARGS=()
 
 # Activar entorno virtual
 source "$VENV_PATH"

@@ -7,7 +7,7 @@ SCRIPT_PATH="$PROJECT_ROOT/01_recording/record_audio.py"
 CODEC_PATH="$PROJECT_ROOT/activarcodec.sh"
 
 # args en array (mejor que string)
-ARGS=(-t 60)
+ARGS=()
 
 echo "Activating venv"
 source "$VENV_PATH"

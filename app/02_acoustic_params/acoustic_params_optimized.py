@@ -132,66 +132,11 @@ class LeqLevelOct:
 
         return [rows], col_names
 
-
-
-
-
-
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description='Make prediction with YAMNet model for audio files'
-    )
-    parser.add_argument(
-        '-p', '--path',
-        type=str,
-        required=False,
-        help='Folder containing WAV files to process'
-    )
-    parser.add_argument(
-        '-c', '--calib-const',
-        type=str,
-        required=False,
-        default=0,
-        help='Calibration constant to setup for each audio device.'
-    )
-    parser.add_argument(
-        "--weighting-yaml",
-        type=str,
-        default=None,
-        help="Path to weighting_fsXXXX.yaml"
-    )
-    parser.add_argument(
-        "--bank-yaml",
-        type=str,
-        default=None,
-        help="Path to sos_bank_1_3_fsXXXX.yaml"
-    )
-    parser.add_argument(
-        "--fs",
-        type=int,
-        default=None,
-        help="If provided, use this fs instead of reading from metadata."
-    )
-    parser.add_argument(
-        "-b", "--bands",
-        action="store_true",
-        help="Calcula bandas de tercios de octava."
-    )
-    parser.add_argument(
-        "-d","--debug",
-        action="store_true",
-        help="Activa el modo debug"
-    )
-    return parser.parse_args()
-
-
 def main():
+    
     try:
 
         
-
         # ---------------------------------------
         # Load config info
         # ---------------------------------------
@@ -234,7 +179,7 @@ def main():
 
         calculator = LeqLevelOct(
             fs                      = fs,
-            calibration_constant    = float(calib),
+            calibration_constant    = float(0),
             window_size             = fs,  # 1 second analysis
             audio_path              = audio_path,
             weighting_yaml_path     = weighting_yaml,
