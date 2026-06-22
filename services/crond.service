@@ -4,6 +4,7 @@ After=network.target
 
 [Service]
 Type=forking
+ExecStartPre=/bin/mkdir -p /root/data/logs
 ExecStart=/usr/sbin/crond -L /root/data/logs/crond_debug.log -c /var/spool/cron/crontabs
 ExecStop=/bin/killall crond
 Restart=always
