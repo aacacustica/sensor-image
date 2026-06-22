@@ -1,14 +1,10 @@
 
 import os
 
-WAV_FOLDER = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/wav_files"
-PROCESSED_WAVS_TXT = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/wav_files/processing_files.txt"
-
-
-
-
-INFERENCES_PROCESSED_PATH = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/prediction_files/processed_predictions.txt"
-ACOUSTICS_PROCESSED_PATH = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/acoustic_params/processed_acoustic.txt"
+WAV_FOLDER = "/root/data/audio"
+PROCESSED_WAVS_TXT = "/root/data/audio/processing_files.txt"
+INFERENCES_PROCESSED_PATH = "/root/data/prediction_files/processed_predictions.txt"
+ACOUSTICS_PROCESSED_PATH = "/root/data/acoustic_params/processed_acoustic.txt"
 
 
 """

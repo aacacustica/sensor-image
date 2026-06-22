@@ -1,8 +1,18 @@
 #!/bin/sh
 
 SENSOR_NAME=$(hostname)
-SERVER_BASE="http://100.120.228.23:8080/upload"
-PROXY="http://127.0.0.1:1055"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_ROOT="$(dirname "$SCRIPT_DIR")"
+
+source /opt/noiseport/config/sensor.env
+
+if [ "$USE_PROXY" = "true" ]; then
+    PROXY="$HTTP_PROXY"
+else
+    PROXY=""
+fi
+
 DATA_DIR="/root/data"
 
 send_file() {
