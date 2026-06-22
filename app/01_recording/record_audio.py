@@ -19,7 +19,7 @@ import time
 strf_time_daystamp = "%Y%m%d_%H%M%S"
 strf_time = "%H:%M:%S"
 
-config = load_config("/root/app/config.yaml")
+config = load_config("/opt/noiseport/app/config.yaml")
 AUDIO_OUTPUT_FOLDER = config['paths']['audio']
 
 
@@ -184,7 +184,6 @@ def main():
             sys.exit(1)
 
         try:
-            c
             audio_format =                      config['audio']['format']
             audio_channels =                    config['audio']['channels']
             audio_sample_rate =                 config['audio']['sample_rate']

@@ -1,5 +1,5 @@
 sensor:
-  id: "RP-1"
+  id: ""
   name: "sensor"
 
 audio:

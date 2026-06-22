@@ -269,8 +269,8 @@ def main():
         prediction_yamnet_class_map_csv = config['prediction']['yamnet_class_map_csv']
         prediction_sample_rate = config['prediction']['sample_rate']
 
-        step = config['step']['step_files']
-        id_micro = config["device"]["id_micro"]
+        step = config['prediction']['step_files']
+        id_micro = config["sensor"]["id_micro"]
         path = config['paths']['prediction_files']
         output_csv_path = config['paths']['prediction_files']
         processed_txt_path = config['paths']['processed_files_predictions']
