@@ -4,7 +4,7 @@ set -euo pipefail
 VENV_PATH="/opt/noiseport/.venv/bin/activate"
 PROJECT_ROOT="/opt/noiseport/app"
 SCRIPT_PATH="$PROJECT_ROOT/01_recording/record_audio.py"
-CODEC_PATH="/$PROJECT_ROOT/activarcodec.sh"
+CODEC_PATH="$PROJECT_ROOT/activarcodec.sh"
 
 # args en array (mejor que string)
 ARGS=(-t 60)

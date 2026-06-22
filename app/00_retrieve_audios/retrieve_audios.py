@@ -5,8 +5,10 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from pathlib import Path
 from logging_config import setup_logging
+from config import config
 
-WAV_FILES_FOLDER = "/root/data/NOISEPORT-TENERIFE/3-Medidas/P1_CONTENEDORES/AUDIOMOTH/wav_files"
+PROJECT_ROOT = "/opt/noiseport/app"
+WAV_FILES_FOLDER = config["paths"]["audio"]
 
 
 def main():

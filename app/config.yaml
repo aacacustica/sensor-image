@@ -1,42 +1,51 @@
-# config.yaml
-device_type:
+sensor:
+  id: "RP-1"
   name: "sensor"
-  
-device:
-  id_micro: "RP-1"
 
-
-# device location
-location:
-  record: "data/NOISEPORT-TENERIFE"
-  place: "3-Medidas"
-  point: "P1_CONTENEDORES"
-
-
-# audio capture parameters
 audio:
-  format: pyaudio.paInt16
+  format: "pyaudio.paInt16"
   channels: 1
   sample_rate: 44100
-  chunk_size: 11025                                       # ~1/4 second of audio if RATE=44100
+  chunk_size: 11025
   calibration_constant: -12.08
-  window_size: 44100                                      # window size in samples (1 second if RATE=44100)
-  calibration_constants_folder: "/root/IoT_microphone_scripts-main/calibration_constants.ini"
+  window_size: 44100
+  file_part_size: 1048576
+  record_length: 60 #en segundos
 
-# S3
+paths:
+  audio: "/root/data/audio"
+  acoustic_params: "/root/data/acoustic_params"
+  prediction_files: "/root/data/prediction_files"
+  processed_files_acoustics: "/root/data/acoustic_params/processed_acoustic.txt"
+  processed_files_predictions: "/root/data/prediction_files/processed_predictions.txt"
+
+  models: "/root/data/models"
+  logs: "/root/data/logs"
+
+  calibration_constants: "/opt/noiseport/app/calibration_constants.ini"
+  weighting_yaml_16000: "/opt/noiseport/app/weighting_fs16000.yaml"
+  bank_yaml_16000: "/opt/noiseport/app/sos_bank_1_3_fs16000.yaml"
+  weighting_yaml_32000: "/opt/noiseport/app/weighting_fs32000.yaml"
+  bank_yaml_32000: "/opt/noiseport/app/sos_bank_1_3_fs32000.yaml"
+
+prediction:
+  model_tflite: "/root/data/models/yamnet.tflite"
+  yamnet_class_map_csv: "/opt/noiseport/app/yamnet_class_map.csv"
+  sample_rate: 16000
+  chunk_size: 15600
+  window_size: 1 #en segundos
+  step_files: 5
+  threshold: 0.3
+  interpreter_threads: None
+
+
+acoustic:
+  fs: 16000
+  bands: true
+
 storage:
   s3_bucket_name: "demo-prototype-aac-2025"
-  output_wav_folder: "wav_files"
-  output_acoust_folder: "acoustic_params"
-  output_predict_folder: "predict"
-  output_predict_lt_folder: "prediction_files"
-  file_part_size: 1048576                                 # = 1024 * 1024 = 1MB
-  #file_part_size: 131072                                   #128KB , intento 1 de reducir el tiempo de subida
 
-#prediction / DL model settings
-prediction:
-  yamnet_class_map_csv: yamnet_class_map.csv
-  sample_rate: 16000
-  chunk_size: 15600                                       # 0.975 * 16000
-  model_tf: "yamnet.h5"
-  model_tflt: "yamnet.tflite"
+logging:
+  level: "INFO"
+  directory: "/root/data/logs"

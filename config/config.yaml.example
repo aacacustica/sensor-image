@@ -1,0 +1,29 @@
+sensor:
+  id: sensor001
+
+audio:
+  sample_rate: 16000
+  channels: 1
+  chunk_seconds: 60
+
+paths:
+  audio: /root/data/audio
+  acoustic_params: /root/data/acoustic_params
+  prediction_files: /root/data/prediction_files
+  models: /root/data/models
+
+inference:
+  model_path: /root/data/models/yamnet.tflite
+  confidence_threshold: 0.3
+
+acoustics:
+  weighting: A
+  octave_band: true
+  third_octave: true
+
+upload:
+  enabled: false
+
+logging:
+  level: INFO
+  directory: /root/data/logs
