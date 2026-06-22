@@ -1,3 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+
+config/sensor.env
+
 app/credentials_aws
-app/credentials_aws
-app/credentials_aws
+
+.vscode/
+
+logs/
